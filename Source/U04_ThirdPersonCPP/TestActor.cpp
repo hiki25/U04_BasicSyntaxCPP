@@ -4,7 +4,7 @@ ATestActor::ATestActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	Alctor = this;
+	Actor = this;
 	//GLog->Log(Actor -> GetName());
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *Actor->GetName());
 
