@@ -16,8 +16,13 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+private:
+	void UpdateParameters();
+
 protected:
-	UPROPERTY(EditAnyWhere)
+	UPROPERTY(VisibleAnyWhere)
 	UStaticMeshComponent* MeshComp;
+
+	UMaterialInstanceDynamic* DynamicMaterial;
 
 };
