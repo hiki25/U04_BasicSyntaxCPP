@@ -1,6 +1,8 @@
 #include "CStaticMeshBase.h"
 #include "Materials/MaterialInstanceConstant.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ACStaticMeshBase::ACStaticMeshBase()
@@ -28,13 +30,20 @@ void ACStaticMeshBase::BeginPlay()
 		MeshComp->SetMaterial(0,DynamicMaterial);
 	}
 
-	UKismetArrayLibrary::K2_SetTimer(this, "UpdateParameters", 1.f, true);
+	UKismetSystemLibrary::K2_SetTimer(this, "UpdateParameters", 1.f, true);
 }
 
 void ACStaticMeshBase::UpdateParameters()
 {
+	FLinearColor RandomColor;
+	RandomColor.R = UKismetMathLibrary::RandomFloatInRange(0.f, 1.f);
+	RandomColor.G = UKismetMathLibrary::RandomFloatInRange(0.f, 1.f);
+	RandomColor.B = UKismetMathLibrary::RandomFloatInRange(0.f, 1.f);
+	RandomColor.A = 1.f;
+	DynamicMaterial->SetVectorParameterValue("BaseColor", RandomColor);
 
-	DynamicMaterial -> SetVectorParameterValue("BaseColor",)
+	DynamicMaterial->SetScalarParameterValue("Metalic", RandomColor.R);
+	DynamicMaterial->SetScalarParameterValue("Roughness", RandomColor.G);
 }
 
 

@@ -17,6 +17,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION()
 	void UpdateParameters();
 
 protected:
