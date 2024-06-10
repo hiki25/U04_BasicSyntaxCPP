@@ -17,6 +17,13 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	
+protected:
+	UFUNCTION()
+		virtual void ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
+	UFUNCTION()
+		virtual void ActorEndOverlap(AActor* OverlappedActor, AActor* OtherActor);
 
 protected:
 	UPROPERTY(VisibleAnywhere)

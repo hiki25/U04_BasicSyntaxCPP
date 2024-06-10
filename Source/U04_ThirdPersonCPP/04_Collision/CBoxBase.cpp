@@ -21,10 +21,21 @@ ACBoxBase::ACBoxBase()
 	TextRenderComp->SetText(GetName());
 }
 
+
 void ACBoxBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	OnActorBeginOverlap.AddDynamic(this, &ACBoxBase::ActorBeginOverlap);
+	OnActorEndOverlap.AddDynamic(this, &ACBoxBase::ActorEndOverlap);
+}
+
+void ACBoxBase::ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
+{
+}
+
+void ACBoxBase::ActorEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
+{
 }
 
 
