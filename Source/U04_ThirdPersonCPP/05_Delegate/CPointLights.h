@@ -23,7 +23,7 @@ private:
 	UFUNCTION()
 	void OffLights();
 	UFUNCTION()
-		FString OnRandomLight(FLinearColor InColor);
+	FString OnRandomLight(FLinearColor InColor);
 
 
 private:
