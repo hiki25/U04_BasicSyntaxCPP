@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "CAnimInstance.h"
 
+
 ACPlayer::ACPlayer()
 {
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
@@ -37,12 +38,14 @@ ACPlayer::ACPlayer()
 		GetMesh()->SetAnimInstanceClass(AnimInstanceClass.Class);
 	}
 
+
+
+
 }
 
 void ACPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 
@@ -55,6 +58,8 @@ void ACPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
+	PlayerInputComponent->BindAction("Open", EInputEvent::IE_Pressed, this, &ACPlayer::OnOpen);
+	PlayerInputComponent->BindAction("Open", EInputEvent::IE_Released, this, &ACPlayer::OffOpen);
 	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &ACPlayer::OnSprint);
 	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &ACPlayer::OffSprint);
 }
@@ -85,3 +90,12 @@ void ACPlayer::OffSprint()
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 }
 
+void ACPlayer::OnOpen()
+{
+	bOpen = true;
+}
+
+void ACPlayer::OffOpen()
+{
+	bOpen = false;
+}
