@@ -1,0 +1,112 @@
+#include "CWeapone.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Character.h"
+
+ACWeapone::ACWeapone()
+{
+	PrimaryActorTick.bCanEverTick = true;
+
+	HolsterSoket = "Holster_AR4";
+	HandSoket = "Hand_AR4";
+
+	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>("MeshComp");
+	RootComponent = MeshComp;
+
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshAsset(TEXT("/Game/Weapons/Meshes/AR4/SK_AR4"));
+	if (MeshAsset.Succeeded())
+	{
+		MeshComp->SetSkeletalMesh(MeshAsset.Object);
+	}
+
+	ConstructorHelpers::FObjectFinder<UAnimMontage> EquipMontageAsset(TEXT("/Game/Character/Animations/AR4/Equip_Mongtage"));
+	if (EquipMontageAsset.Succeeded())
+	{
+		EquipMontage = EquipMontageAsset.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UAnimMontage> UnEquipMontageAsset(TEXT("/Game/Character/Animations/AR4/UnEquip_Mongtage"));
+	if (UnEquipMontageAsset.Succeeded())
+	{
+		UnEquipMontage = UnEquipMontageAsset.Object;
+	}
+
+
+}
+
+void ACWeapone::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OwnerCharacter = Cast<ACharacter>(GetOwner());
+
+	if(OwnerCharacter)
+	{
+		AttachToComponent
+		(
+			OwnerCharacter->GetMesh(),
+			FAttachmentTransformRules(EAttachmentRule::KeepRelative, true),
+			HolsterSoket
+		);
+	}
+	
+	
+}
+
+void ACWeapone::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+void ACWeapone::Equip()
+{
+	if (bEquipping == true) return;
+	if (bEquipped == true) return;
+
+	bEquipping = true;
+	OwnerCharacter->PlayAnimMontage(EquipMontage);
+}
+
+void ACWeapone::Begin_Equip()
+{
+	bEquipped = true;
+
+	AttachToComponent
+	(
+		OwnerCharacter->GetMesh(),
+		FAttachmentTransformRules(EAttachmentRule::KeepRelative, true),
+		HandSoket
+	);
+}
+
+void ACWeapone::End_Equip()
+{
+	bEquipping = false;
+}
+
+void ACWeapone::Begin_UnEquip()
+{
+	bEquipped = false;
+
+	AttachToComponent
+	(
+		OwnerCharacter->GetMesh(),
+		FAttachmentTransformRules(EAttachmentRule::KeepRelative, true),
+		HolsterSoket
+	);
+}
+
+void ACWeapone::End_UnEquip()
+{
+	bEquipping = false;
+}
+
+void ACWeapone::UnEquip()
+{
+	if (bEquipping == true) return;
+	if (bEquipped == false) return;
+
+	bEquipping = true;
+	OwnerCharacter->PlayAnimMontage(UnEquipMontage);
+}
+
