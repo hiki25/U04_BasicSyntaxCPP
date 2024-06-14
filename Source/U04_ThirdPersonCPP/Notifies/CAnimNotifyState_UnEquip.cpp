@@ -1,13 +1,13 @@
-#include "CAnimNotifyState_Equip.h"
+#include "CAnimNotifyState_UnEquip.h"
 #include "CWeaponeInterface.h"
 #include "CWeapone.h"
 
-FString UCAnimNotifyState_Equip::GetNotifyName_Implementation() const
+FString UCAnimNotifyState_UnEquip::GetNotifyName_Implementation() const
 {
-	return "Equip";
+	return "UnEquip";
 }
 
-void UCAnimNotifyState_Equip::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+void UCAnimNotifyState_UnEquip::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration);
 	
@@ -19,12 +19,12 @@ void UCAnimNotifyState_Equip::NotifyBegin(USkeletalMeshComponent* MeshComp, UAni
 	ACWeapone* Weapone = ImplementedOwner->GetWeapone();
 	if (ImplementedOwner->GetWeapone() == nullptr) return;
 
-	Weapone->Begin_Equip();
+	Weapone->Begin_UnEquip();
 
 	
 }
 
-void UCAnimNotifyState_Equip::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+void UCAnimNotifyState_UnEquip::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	Super::NotifyEnd(MeshComp, Animation);
 
@@ -36,5 +36,5 @@ void UCAnimNotifyState_Equip::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimS
 	ACWeapone* Weapone = ImplementedOwner->GetWeapone();
 	if (Weapone == nullptr) return;
 
-	Weapone->End_Equip();
+	Weapone->End_UnEquip();
 }

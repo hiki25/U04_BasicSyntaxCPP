@@ -9,6 +9,8 @@ void UCAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (OnwerPawn)
 	{
 		Speed = OnwerPawn->GetVelocity().Size2D();
+		Direction = CalculateDirection(OnwerPawn->GetVelocity(), OnwerPawn->GetControlRotation());
+		Pitch = OnwerPawn->GetBaseAimRotation().Pitch;
 		
 		//검사할땐 클래스는 U
 		//OnwerPawn->Implements<UCWeaponeInterface>()
@@ -20,6 +22,7 @@ void UCAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			if (Weapone)
 			{
 				bEquipped = Weapone->IsEquipped();
+				bAiming = Weapone->IsAiming();
 			}
 		}
 	}

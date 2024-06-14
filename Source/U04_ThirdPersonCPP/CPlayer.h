@@ -9,6 +9,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UMaterialInstanceDynamic;
 class ACWeapone;
+class UCCrossHairWidget;
 
 UCLASS()
 class U04_THIRDPERSONCPP_API ACPlayer : public ACharacter, public ICWeaponeInterface
@@ -36,21 +37,40 @@ private:
 
 	void ToggleEquip();
 
+	void OnAim();
+	void OffAim();
+
 
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetBodyColor(FLinearColor InBodyColor, FLinearColor InLogoColor);
 
+protected:
+	UFUNCTION(BlueprintImplementableEvent)
+	void Begin_Zoom();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void End_Zoom();
+
+protected:
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+		UCameraComponent* CameraComp;
+
 private:
 	UPROPERTY(VisibleAnywhere)
 		USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(VisibleAnywhere)
-		UCameraComponent* CameraComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponClass")
+	TSubclassOf<ACWeapone> WeaponeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponClass")
+	TSubclassOf<UCCrossHairWidget> CrossHairWidgetClass;
 
 private:
 	UMaterialInstanceDynamic* BodyMaterial;
 	UMaterialInstanceDynamic* LogoMaterial;
 
 	ACWeapone* Weapone;
+	UCCrossHairWidget* CrossHairWidget;
 };

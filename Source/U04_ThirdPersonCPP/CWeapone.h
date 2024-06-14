@@ -25,6 +25,12 @@ public:
 public:
 	FORCEINLINE bool IsEquipped() { return bEquipped; }
 	FORCEINLINE bool IsEquipping() { return bEquipping; }
+	FORCEINLINE bool IsAiming() { return bAiming; }
+
+	void BeginAiming();
+	void EndAiming();
+	//Get은 인라인 함수로 만드는데 Set함수는 만들지 않는다
+	//유지 보수 편하게 하기 위해
 
 	void Equip();
 	void UnEquip();
@@ -56,4 +62,5 @@ private:
 
 	bool bEquipped;
 	bool bEquipping;
+	bool bAiming;
 };

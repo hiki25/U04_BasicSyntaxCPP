@@ -110,3 +110,12 @@ void ACWeapone::UnEquip()
 	OwnerCharacter->PlayAnimMontage(UnEquipMontage);
 }
 
+void ACWeapone::BeginAiming()
+{
+	bAiming = true;
+}
+
+void ACWeapone::EndAiming()
+{
+	bAiming = false;
+}
