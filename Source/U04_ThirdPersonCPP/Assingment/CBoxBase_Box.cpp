@@ -2,6 +2,8 @@
 #include "Global.h"
 #include "Components/StaticMeshComponent.h"
 #include "CPlayer.h"
+#include "Materials/MaterialInstanceConstant.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 
 ACBoxBase_Box::ACBoxBase_Box()
@@ -29,30 +31,44 @@ ACBoxBase_Box::ACBoxBase_Box()
 	 
 	 ChestTop->SetRelativeRotation(FRotator(0, -180, 0));
 	 ChestTop->SetRelativeLocation(FVector(50, 0, 0));
+
+	 TextRenderComp->SetText(TEXT("Press to 'F'"));
 	 
-	 
+}
+
+void ACBoxBase_Box::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	OnActorBeginOverlap.AddDynamic(this, &ACBoxBase_Box::ActorBeginOverlap);
+	OnActorEndOverlap.AddDynamic(this, &ACBoxBase_Box::ActorEndOverlap);
+
+	UObject* ObjectAsset = StaticLoadObject(UMaterialInstanceConstant::StaticClass(), nullptr, TEXT("/Game/Assingment/Chest/MI_Chest"));
+	UMaterialInstanceConstant* MaterialAsset = Cast<UMaterialInstanceConstant>(ObjectAsset);
+	DynamicMaterial = UMaterialInstanceDynamic::Create(MaterialAsset,nullptr);
+
+	ChestBottom->SetMaterial(0, DynamicMaterial);
+	ChestTop->SetMaterial(0, DynamicMaterial);
+	DynamicMaterial->SetVectorParameterValue("Emissive", ChestColor);
 }
 
 void ACBoxBase_Box::ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	Super::ActorBeginOverlap(OverlappedActor, OtherActor);
-	ACPlayer* Player = Cast<ACPlayer>(OtherActor);
-	
-	if(Player->bOpen)
-	{
-		CLog::Print("Open");
-		OpenTheDoor(50.f);
-	}
-	else
-	{
-		CLog::Print("false");
-	}
-	
+ Player = Cast<ACPlayer>(OtherActor);
+}
+
+void ACBoxBase_Box::ActorEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
+{
+	Player = nullptr;
 }
 
 void ACBoxBase_Box::OpenTheDoor(float InRotator)
 {
-	ChestTop->SetRelativeRotation(FRotator(InRotator, -180, 0));
+	if (bOpen == false)
+	{
+		ChestTop->SetRelativeRotation(FRotator(InRotator, -180, 0));
+		OnOpenBox();
+		bOpen = true;
+	}
 }
 
 
