@@ -26,9 +26,17 @@ public:
 	FORCEINLINE bool IsEquipped() { return bEquipped; }
 	FORCEINLINE bool IsEquipping() { return bEquipping; }
 	FORCEINLINE bool IsAiming() { return bAiming; }
+	FORCEINLINE USkeletalMeshComponent* GetMesh() { return MeshComp; }
 
 	void BeginAiming();
 	void EndAiming();
+
+	void Begin_Fire();
+	void End_Fire();
+
+	UFUNCTION()
+	void Firing();
+
 	//Get은 인라인 함수로 만드는데 Set함수는 만들지 않는다
 	//유지 보수 편하게 하기 위해
 
@@ -39,6 +47,8 @@ public:
 	void End_Equip();
 	void Begin_UnEquip();
 	void End_UnEquip();
+
+	
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Soket")
@@ -53,6 +63,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Montages")
 	UAnimMontage* UnEquipMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "CameraShake")
+	TSubclassOf<UCameraShake> CameraShakeClass;
+
 private:
 	UPROPERTY(VisibleDefaultsOnly)
 	USkeletalMeshComponent* MeshComp;
@@ -63,4 +76,5 @@ private:
 	bool bEquipped;
 	bool bEquipping;
 	bool bAiming;
+	bool bFiring;
 };
