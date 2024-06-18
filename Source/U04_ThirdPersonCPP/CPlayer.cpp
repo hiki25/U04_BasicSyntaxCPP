@@ -1,11 +1,9 @@
 #include "CPlayer.h"
 #include "Global.h"
-#include "Assingment/CBoxBase_Box.h"
-#include "Assingment/CBoxBase_Door.h"
-#include "Assingment/CKey.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "CAnimInstance.h"
@@ -14,8 +12,6 @@
 
 ACPlayer::ACPlayer()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
 	SpringArmComp->SetupAttachment(GetCapsuleComponent());
 	SpringArmComp->SetRelativeLocation(FVector(0, 0, 60));
@@ -52,22 +48,16 @@ ACPlayer::ACPlayer()
 		CrossHairWidgetClass = CrossHairWidgetClassAsset.Class;
 	}
 
-<<<<<<< Updated upstream
 }
 
 void ACPlayer::ChangeSpeed(float InMoveSpeed)
 {
 	GetCharacterMovement()->MaxWalkSpeed = InMoveSpeed;
-=======
-	Key = CreateDefaultSubobject<ACKey>("Key");
-
->>>>>>> Stashed changes
 }
 
 void ACPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-<<<<<<< Updated upstream
 
 	BodyMaterial =UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
 	LogoMaterial =UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(1), this);
@@ -83,12 +73,7 @@ void ACPlayer::BeginPlay()
 
 	CrossHairWidget = CreateWidget<UCCrossHairWidget, APlayerController>(GetController<APlayerController>(), CrossHairWidgetClass);
 	CrossHairWidget->AddToViewport();
-=======
-	OnActorBeginOverlap.AddDynamic(this, &ACPlayer::ActorBeginOverlap);
-	OnActorEndOverlap.AddDynamic(this, &ACPlayer::ActorEndOverlap);
-
-	
->>>>>>> Stashed changes
+	CrossHairWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
 
@@ -101,41 +86,17 @@ void ACPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
-<<<<<<< Updated upstream
-=======
-	PlayerInputComponent->BindAction("Open", EInputEvent::IE_Pressed, this, &ACPlayer::OnOpen);
->>>>>>> Stashed changes
 	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &ACPlayer::OnSprint);
 	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &ACPlayer::OffSprint);
 
 	PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &ACPlayer::OnAim);
 	PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &ACPlayer::OffAim);
 
+	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &ACPlayer::OnFire);
+	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &ACPlayer::OffFire);
+
 	PlayerInputComponent->BindAction("Rifle", EInputEvent::IE_Pressed, this, &ACPlayer::ToggleEquip);
 }
-
-void ACPlayer::ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
-{
-	ACBoxBase_Box* OverlapBox = Cast<ACBoxBase_Box>(OtherActor);
-	if(OverlapBox != nullptr)
-	{
-		Box = OverlapBox;
-	}
-
-	ACBoxBase_Door* OverlapDoor = Cast<ACBoxBase_Door>(OtherActor);
-	if (OverlapDoor != nullptr)
-	{
-		Door = OverlapDoor;
-	}
-	
-}
-
-void ACPlayer::ActorEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
-{
-	Box = nullptr;
-	Door = nullptr;
-}
-
 
 void ACPlayer::OnMoveForward(float Axis)
 {
@@ -165,7 +126,6 @@ void ACPlayer::OffSprint()
 
 void ACPlayer::ToggleEquip()
 {
-<<<<<<< Updated upstream
 	if (Weapone == nullptr) return;
 
 	if (Weapone->IsEquipped())
@@ -193,6 +153,7 @@ void ACPlayer::OnAim()
 	Begin_Zoom();
 
 	Weapone->BeginAiming();
+	CrossHairWidget->SetVisibility(ESlateVisibility::Visible);
 }
 
 void ACPlayer::OffAim()
@@ -209,7 +170,19 @@ void ACPlayer::OffAim()
 
 	End_Zoom();
 	Weapone->EndAiming();
+	CrossHairWidget->SetVisibility(ESlateVisibility::Hidden);
 }
+
+void ACPlayer::OnFire()
+{
+	Weapone->Begin_Fire();
+}
+
+void ACPlayer::OffFire()
+{
+	Weapone->End_Fire();
+}
+
 
 void ACPlayer::SetBodyColor(FLinearColor InBodyColor, FLinearColor InLogoColor)
 {
@@ -217,41 +190,30 @@ void ACPlayer::SetBodyColor(FLinearColor InBodyColor, FLinearColor InLogoColor)
 	LogoMaterial->SetVectorParameterValue("BodyColor", InLogoColor);
 }
 
-=======
-	GetWorldTimerManager().SetTimer(fTimerHandler, this, &ACPlayer::OnOpen, 0.03f, false, 0.00f);
-	if (Box != nullptr)
-	{
-		float Start = 0.00f;
-		float End = 90.f;
-		float Alpha = timeDelta;
-
-		float Result = UKismetMathLibrary::Lerp(Start, End, Alpha);
-		Box->OpenTheDoor(Result);
-	}
-	
-	
-
-	if (Door != nullptr)
-	{
-		float Start = 0.00f;
-		float End = 90.f;
-		float Alpha = timeDelta;
-
-		float Result = UKismetMathLibrary::Lerp(Start, End, Alpha);
-		Door->OpenTheDoor(Result);
-	}
-	if (timeDelta > 1.0f)
-	{
-		GetWorldTimerManager().ClearTimer(fTimeHandler);
-	}
-}
-
-void ACPlayer::Tick(float DeltaSeconds)
+void ACPlayer::GetAimInfo(FVector& OutAimStart, FVector& OutAimEnd, FVector& OutAimDirection)
 {
-	CLog::Print("RedKey : " + FString::FromInt(Key->GetRedKey()),1,10.0F,FColor::Red);
-	CLog::Print("GreenKey : " + FString::FromInt(Key->GetGreenKey()),2, 10.0F, FColor::Green);
-	CLog::Print("BlueKey : " + FString::FromInt(Key->GetBlueKey()), 3, 10.0F, FColor::Blue);
-	timeDelta += DeltaSeconds;
+	OutAimDirection = CameraComp->GetForwardVector();
+
+	FVector MuzzleLocation = Weapone->GetMesh()->GetSocketLocation("MuzzleFlash");
+	FVector CameraLocation = CameraComp->GetComponentToWorld().GetLocation();
+
+	OutAimStart = CameraLocation + OutAimDirection * (OutAimDirection | (MuzzleLocation - CameraLocation));
+
+	FVector RandomConeDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(OutAimDirection,0.2f);
+	RandomConeDirection *= 50000.0f;
+	OutAimEnd = CameraLocation + RandomConeDirection;
 }
 
->>>>>>> Stashed changes
+void ACPlayer::OnTarget()
+{
+	if (CrossHairWidget == nullptr) return;
+	CrossHairWidget->OnTarget();
+	
+}
+
+void ACPlayer::OffTarget()
+{
+	if (CrossHairWidget == nullptr) return;
+	CrossHairWidget->OffTarget();
+}
+

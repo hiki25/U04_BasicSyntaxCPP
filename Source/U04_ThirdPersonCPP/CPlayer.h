@@ -19,6 +19,11 @@ class U04_THIRDPERSONCPP_API ACPlayer : public ACharacter, public ICWeaponeInter
 public:
 	ACPlayer();
 
+	// Inherited via ICWeaponeInterface
+	virtual void GetAimInfo(FVector& OutAimStart, FVector& OutAimEnd, FVector& OutAimDirection) override;
+	virtual void OnTarget() override;
+	virtual void OffTarget() override;
+
 	UFUNCTION(Exec)
 	void ChangeSpeed(float InMoveSpeed = 400.f);
 
@@ -39,6 +44,9 @@ private:
 
 	void OnAim();
 	void OffAim();
+
+	void OnFire();
+	void OffFire();
 
 
 public:
@@ -73,4 +81,6 @@ private:
 
 	ACWeapone* Weapone;
 	UCCrossHairWidget* CrossHairWidget;
+
+	
 };
