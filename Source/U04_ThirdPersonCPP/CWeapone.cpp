@@ -1,15 +1,22 @@
 #include "CWeapone.h"
 #include "Global.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/DecalComponent.h"
+#include "Sound/SoundCue.h"
 #include "GameFramework/Character.h"
+#include "Materials/MaterialInstanceConstant.h"
 #include "CWeaponeInterface.h"
 #include "CPlayer.h"
+#include "CBullet.h"
 
 static TAutoConsoleVariable<bool> CVarDebugLine(TEXT("Tore.DrawDebugLine"), false,TEXT("Enable Draw Aim Line"),ECVF_Cheat);
 
 ACWeapone::ACWeapone()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	FireInterval = 0.1f;
+	PitchSpeed = 0.25f;
 
 	HolsterSoket = "Holster_AR4";
 	HandSoket = "Hand_AR4";
@@ -41,7 +48,11 @@ ACWeapone::ACWeapone()
 		CameraShakeClass = CameraShakeAsset.Class;
 	}
 
-
+	ConstructorHelpers::FClassFinder<ACBullet> BulletAsset(TEXT("/Game/BP_CBullet"));
+	if (BulletAsset.Succeeded())
+	{
+		BulletClass = BulletAsset.Class;
+	}
 }
 
 void ACWeapone::BeginPlay()
@@ -157,6 +168,11 @@ void ACWeapone::UnEquip()
 	OwnerCharacter->PlayAnimMontage(UnEquipMontage);
 }
 
+void ACWeapone::ToggleAutoFire()
+{
+	bAutoFire = !bAutoFire;
+}
+
 void ACWeapone::BeginAiming()
 {
 	bAiming = true;
@@ -175,6 +191,13 @@ void ACWeapone::Begin_Fire()
 	if (bFiring == true) return;
 
 	bFiring = true;
+	CurrentPitch = 0;
+
+	if (bAutoFire)
+	{
+		GetWorld()->GetTimerManager().SetTimer(AutoTimerHandel, this, &ACWeapone::Firing, FireInterval, true,0.f);
+		return;
+	}
 
 	Firing();
 }
@@ -182,6 +205,11 @@ void ACWeapone::Begin_Fire()
 void ACWeapone::End_Fire()
 {
 	bFiring = false;
+
+	if (bAutoFire)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(AutoTimerHandel);
+	}
 }
 
 void ACWeapone::Firing()
@@ -196,11 +224,39 @@ void ACWeapone::Firing()
 		}
 	}
 
+
 	ICWeaponeInterface* ImplementedsActor = Cast<ICWeaponeInterface>(OwnerCharacter);
 	if (ImplementedsActor == nullptr) return;
 
 	FVector Start, End, Direction;
 	ImplementedsActor->GetAimInfo(Start, End, Direction);
+
+	FVector MuzzleLocation = MeshComp->GetSocketLocation("MuzzleFlash");
+	if (BulletClass)
+	{
+		GetWorld()->SpawnActor<ACBullet>(BulletClass, MuzzleLocation, Direction.Rotation());
+	}
+
+	if (MuzzleParticle)
+	{
+		UGameplayStatics::SpawnEmitterAttached(MuzzleParticle, MeshComp, "MuzzleFlash");
+	}
+
+	if (EjectParticle)
+	{
+		UGameplayStatics::SpawnEmitterAttached(EjectParticle, MeshComp, "EjectBullet");
+	}
+
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, MuzzleLocation);
+	}
+
+	CurrentPitch -= PitchSpeed * GetWorld()->GetDeltaSeconds();
+	if (CurrentPitch > -PitchSpeed)
+	{
+		OwnerCharacter->AddControllerPitchInput(CurrentPitch);
+	}
 
 	FCollisionQueryParams Param;
 	Param.AddIgnoredActor(this);
@@ -209,12 +265,23 @@ void ACWeapone::Firing()
 	FHitResult Hit;
 	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Param))
 	{
+		FRotator ImpactRotation = Hit.ImpactNormal.Rotation();
+		FVector ImpactLocation = Hit.ImpactPoint;
+		if (DecalMaterial)
+		{
+			UDecalComponent* DecalComp = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), DecalMaterial, FVector(5), ImpactLocation, ImpactRotation,5.0f);
+			DecalComp->SetFadeScreenSize(0);
+		}
+		if (ImpactParticle)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle, ImpactLocation, ImpactRotation);
+		}
 		if (Hit.Component->IsSimulatingPhysics())
 		{
 			Direction = Hit.Actor->GetActorLocation() - OwnerCharacter->GetActorLocation();
 			Direction.Normalize();
 
-			Hit.Component->AddImpulseAtLocation(Direction * 3000.0f,OwnerCharacter->GetActorLocation());
+			Hit.Component->AddImpulseAtLocation(Direction * 6000.0f,OwnerCharacter->GetActorLocation());
 		}
 	}
 }

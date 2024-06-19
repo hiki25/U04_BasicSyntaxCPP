@@ -10,6 +10,7 @@ class UCameraComponent;
 class UMaterialInstanceDynamic;
 class ACWeapone;
 class UCCrossHairWidget;
+class UCWeaponeWidget;
 
 UCLASS()
 class U04_THIRDPERSONCPP_API ACPlayer : public ACharacter, public ICWeaponeInterface
@@ -48,6 +49,8 @@ private:
 	void OnFire();
 	void OffFire();
 
+	void OnAutoFire();
+
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -74,13 +77,17 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponClass")
 	TSubclassOf<UCCrossHairWidget> CrossHairWidgetClass;
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponClass")
+	TSubclassOf<UCWeaponeWidget> WeaponeWidgetclass;
 
 private:
 	UMaterialInstanceDynamic* BodyMaterial;
 	UMaterialInstanceDynamic* LogoMaterial;
 
 	ACWeapone* Weapone;
+
 	UCCrossHairWidget* CrossHairWidget;
+	UCWeaponeWidget* WeaponeWidget;
 
 	
 };
