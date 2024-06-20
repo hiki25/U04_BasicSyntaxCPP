@@ -4,15 +4,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "CAnimInstance.h"
-#include "Assingment/CBoxBase_Box.h"
-#include "Assingment/CBoxBase_Door.h"
-#include "Assingment/CKey.h"
-
+#include "CWeapone.h"
+#include "Widgets/CCrossHairWidget.h"
+#include "Widgets/CAutoWidget.h"
 
 ACPlayer::ACPlayer()
 {
-	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
 	SpringArmComp->SetupAttachment(GetCapsuleComponent());
@@ -20,6 +20,7 @@ ACPlayer::ACPlayer()
 	SpringArmComp->TargetArmLength = 200.f;
 	SpringArmComp->bDoCollisionTest = false;
 	SpringArmComp->bUsePawnControlRotation = true;
+	SpringArmComp->SocketOffset = FVector(0, 60, 0);
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	CameraComp->SetupAttachment(SpringArmComp);
@@ -43,36 +44,55 @@ ACPlayer::ACPlayer()
 		GetMesh()->SetAnimInstanceClass(AnimInstanceClass.Class);
 	}
 
+	ConstructorHelpers::FClassFinder<UCCrossHairWidget> CrossHairWidgetClassAsset(TEXT("/Game/Wigets/WB_CrossHair"));
+	if (CrossHairWidgetClassAsset.Succeeded())
+	{
+		CrossHairWidgetClass = CrossHairWidgetClassAsset.Class;
+	}
 
-	
+	ConstructorHelpers::FClassFinder<UCAutoWidget> AutoWidgetClassAsset(TEXT("/Game/Wigets/WB_AutoWidget"));
+	if (AutoWidgetClassAsset.Succeeded())
+	{
+		AutoWidgetClass = AutoWidgetClassAsset.Class;
+	}
+
 
 }
 
-void ACPlayer::Tick(float DeltaSeconds)
+void ACPlayer::ChangeSpeed(float InMoveSpeed)
 {
-	
-	if (Key.Num() > 0)
-	{
-		CLog::Print(TEXT("Have " + Key[0].ToString() + " Key"), 1);
-		if (Key.Num() > 1)
-		{
-			CLog::Print(TEXT("Have " + Key[1].ToString() + " Key"), 2);
-			if (Key.Num() > 2)
-			{
-				CLog::Print(TEXT("Have " + Key[2].ToString() + " Key"), 3);
-			}
-		}
-		
-	}
-		
-	
+	GetCharacterMovement()->MaxWalkSpeed = InMoveSpeed;
 }
 
 void ACPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	OnActorBeginOverlap.AddDynamic(this, &ACPlayer::ActorBeginOverlap);
-	OnActorEndOverlap.AddDynamic(this, &ACPlayer::ActorEndOverlap);
+
+	BodyMaterial =UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+	LogoMaterial =UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(1), this);
+
+	GetMesh()->SetMaterial(0, BodyMaterial);
+	GetMesh()->SetMaterial(1, LogoMaterial);
+
+	FActorSpawnParameters SpawnParam;
+	SpawnParam.Owner = this;
+	SpawnParam.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	Weapone = GetWorld()->SpawnActor<ACWeapone>(WeaponeClass,SpawnParam);
+
+	CrossHairWidget = CreateWidget<UCCrossHairWidget, APlayerController>(GetController<APlayerController>(), CrossHairWidgetClass);
+	CrossHairWidget->AddToViewport();
+	CrossHairWidget->SetVisibility(ESlateVisibility::Hidden);
+
+	AutoWidget = CreateWidget<UCAutoWidget, APlayerController>(GetController<APlayerController>(), AutoWidgetClass);
+	AutoWidget->AddToViewport();
+}
+
+void ACPlayer::Tick(float Deltatime)
+{
+	CurrentBullet = Weapone->GetCurrentBullet();
+	MaxBullet = Weapone->GetMaxBullet();
+	AutoWidget->BulletCount(MaxBullet, CurrentBullet);
 }
 
 
@@ -85,9 +105,30 @@ void ACPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
-	PlayerInputComponent->BindAction("Open", EInputEvent::IE_Pressed, this, &ACPlayer::OnOpen);
 	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &ACPlayer::OnSprint);
 	PlayerInputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &ACPlayer::OffSprint);
+
+	PlayerInputComponent->BindAction("AutoFire", EInputEvent::IE_Pressed, this, &ACPlayer::ToggleAuto);
+
+	PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &ACPlayer::OnAim);
+	PlayerInputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &ACPlayer::OffAim);
+
+	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &ACPlayer::OnFire);
+	PlayerInputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &ACPlayer::OffFire);
+
+	PlayerInputComponent->BindAction("Rifle", EInputEvent::IE_Pressed, this, &ACPlayer::ToggleEquip);
+
+	PlayerInputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &ACPlayer::Reload);
+}
+
+void ACPlayer::OnTarget()
+{
+	CrossHairWidget->OnTarget();
+}
+
+void ACPlayer::OffTarget()
+{
+	CrossHairWidget->OffTarget();
 }
 
 void ACPlayer::OnMoveForward(float Axis)
@@ -116,53 +157,104 @@ void ACPlayer::OffSprint()
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 }
 
-
-void ACPlayer::ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
+void ACPlayer::ToggleEquip()
 {
-	ACBoxBase_Box* OverlapBox = Cast<ACBoxBase_Box>(OtherActor);
-	if (OverlapBox != nullptr)
+	if (Weapone == nullptr) return;
+
+	if (Weapone->IsEquipped())
 	{
-		Box = OverlapBox;
+		OffAim();
+		Weapone->UnEquip();
 	}
-	ACBoxBase_Door* OverlapDoor = Cast<ACBoxBase_Door>(OtherActor);
-	if (OverlapDoor != nullptr)
+	else
 	{
-		Door = OverlapDoor;
+		Weapone->Equip();
 	}
-	
-	
+	Weapone->End_Fire();
 }
 
-void ACPlayer::ActorEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
+void ACPlayer::ToggleAuto()
 {
-	Box = nullptr;
-	Door = nullptr;
+	if (Weapone->IsFiring() == true) return;
+	Weapone->ToggleAutoFire();
+
+	(Weapone->IsAutoFire() ? AutoWidget->OnAuto() : AutoWidget->OffAuto());
 }
 
-
-void ACPlayer::OnOpen()
+void ACPlayer::OnAim()
 {
-	if (Box != nullptr)
-	{
-		Box->OpenTheDoor(50.0f);
-		Key.AddUnique(Box->GetName());
-	}
 	
+	if (Weapone == nullptr) return;
+	if (Weapone->IsEquipped() == false) return;
+	if (Weapone->IsEquipping() == true) return;
+	if (Weapone->IsReloading() == true) return;
 
-	if (Door != nullptr )
-	{
-		if (Key.Find(Door->GetName())>-1)
-		{
-			Door->OpenTheDoor(90.0f);
-		}
-		else
-		{
-			CLog::Print(TEXT("You Don't Have Key"),-1,1.0f,FColor::Red);
-		}
-	}
-	
-	
-	
+	bUseControllerRotationYaw = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	SpringArmComp->TargetArmLength = 100.0f;
+	SpringArmComp->SocketOffset = FVector(0, 30, 10);
+
+	Begin_Zoom();
+
+	Weapone->BeginAiming();
+	CrossHairWidget->SetVisibility(ESlateVisibility::Visible);
 }
 
+void ACPlayer::OffAim()
+{
+	
+	if (Weapone == nullptr) return;
+	if (Weapone->IsEquipped() == false) return;
+	if (Weapone->IsEquipping() == true) return;
+	if (Weapone->IsReloading() == true) return;
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	SpringArmComp->TargetArmLength = 200.0f;
+	SpringArmComp->SocketOffset = FVector(0, 60, 0);
+
+	End_Zoom();
+	Weapone->EndAiming();
+	CrossHairWidget->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void ACPlayer::OnFire()
+{
+	Weapone->Begin_Fire();
+}
+
+void ACPlayer::OffFire()
+{
+	Weapone->End_Fire();
+}
+
+void ACPlayer::Reload()
+{
+	if (Weapone == nullptr) return;
+	if (Weapone->IsEquipped() == false) return;
+	OffAim();
+	OffFire();
+	Weapone->RelaodBullet();
+}
+
+void ACPlayer::SetBodyColor(FLinearColor InBodyColor, FLinearColor InLogoColor)
+{
+	BodyMaterial->SetVectorParameterValue("BodyColor", InBodyColor);
+	LogoMaterial->SetVectorParameterValue("BodyColor", InLogoColor);
+}
+
+void ACPlayer::GetAimInfo(FVector& OutAimStart, FVector& OutAimEnd, FVector& OutAimDirection)
+{
+	OutAimDirection = CameraComp->GetForwardVector();
+	FVector MuzzleLocation = Weapone->GetMesh()->GetSocketLocation("MuzzleFlash");
+	FVector CameraLocation = CameraComp->GetComponentToWorld().GetLocation();
+
+	OutAimStart = CameraLocation+ OutAimDirection * (OutAimDirection | (MuzzleLocation - CameraLocation));
+
+	FVector RandomConeDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(OutAimDirection, 0.2f);
+	RandomConeDirection *= 50000.0f;
+	OutAimEnd = CameraLocation + RandomConeDirection;
+}
 

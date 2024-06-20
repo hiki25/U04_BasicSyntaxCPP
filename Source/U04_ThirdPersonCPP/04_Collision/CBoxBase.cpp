@@ -1,6 +1,6 @@
 #include "CBoxBase.h"
 #include "Components/BoxComponent.h"
-
+#include "Components/TextRenderComponent.h"
 
 ACBoxBase::ACBoxBase()
 {
@@ -18,6 +18,7 @@ ACBoxBase::ACBoxBase()
 	TextRenderComp->SetRelativeRotation(FRotator(0,180, 0));
 	TextRenderComp->HorizontalAlignment = EHorizTextAligment::EHTA_Center;
 	TextRenderComp->TextRenderColor = FColor::Black;
+	TextRenderComp->SetText(GetName());
 }
 
 

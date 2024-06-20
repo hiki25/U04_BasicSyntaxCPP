@@ -17,6 +17,22 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Character")
 	float Speed;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Character")
+	float Direction;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Character")
+		float Pitch;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Character")
+	bool bEquipped;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Character")
+	bool bAiming;
+
+	UFUNCTION()
+	void AnimNotify_Reload();
+	UFUNCTION()
+	void AnimNotify_EndReload();
 private:
 	APawn* OnwerPawn;
 	

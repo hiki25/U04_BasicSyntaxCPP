@@ -2,30 +2,37 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Assingment/CBoxBase_Box.h"
+#include "CWeaponeInterface.h"
 #include "CPlayer.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
-class ACBoxBase_Box;
-class ACBoxBase_Door;
-class ACKey;
+class UMaterialInstanceDynamic;
+class ACWeapone;
+class UCCrossHairWidget;
+class UCAutoWidget;
 
 UCLASS()
-class U04_THIRDPERSONCPP_API ACPlayer : public ACharacter
+class U04_THIRDPERSONCPP_API ACPlayer : public ACharacter, public ICWeaponeInterface
 {
 	GENERATED_BODY()
 
 public:
 	ACPlayer();
 
-private:
-	virtual void Tick(float DeltaSeconds) override;
-	float DeltaTime = 0.0f;
+	UFUNCTION(Exec)
+	void ChangeSpeed(float InMoveSpeed = 400.f);
 
+	FORCEINLINE ACWeapone* GetWeapone() override { return Weapone; }
+
+	void Reload();
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float Deltatime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void OnTarget() override;
+	virtual void OffTarget() override;
 
 private:
 	void OnMoveForward(float Axis);
@@ -34,29 +41,64 @@ private:
 	void OnSprint();
 	void OffSprint();
 
-	void OnOpen();
+	void ToggleEquip();
+	void ToggleAuto();
+
+	void OnAim();
+	void OffAim();
+
+	void OnFire();
+	void OffFire();
+
+
+
 
 public:
+	UFUNCTION(BlueprintCallable)
+	void SetBodyColor(FLinearColor InBodyColor, FLinearColor InLogoColor);
 
-public:
-	UFUNCTION()
-	void ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
-	UFUNCTION()
-	void ActorEndOverlap(AActor* OverlappedActor, AActor* OtherActor);
+protected:
+	UFUNCTION(BlueprintImplementableEvent)
+	void Begin_Zoom();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void End_Zoom();
+
+protected:
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+		UCameraComponent* CameraComp;
 
 private:
 	UPROPERTY(VisibleAnywhere)
 		USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(VisibleAnywhere)
-		UCameraComponent* CameraComp;
 
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponClass")
+	TSubclassOf<ACWeapone> WeaponeClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Widgetclass")
+	TSubclassOf<UCCrossHairWidget> CrossHairWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Widgetclass")
+	TSubclassOf<UCAutoWidget> AutoWidgetClass;
+
+	UPROPERTY()
+		int32 CurrentBullet;
+
+	UPROPERTY()
+		int32 MaxBullet;
 
 private:
-	ACBoxBase_Box* Box = nullptr;
-	ACBoxBase_Door* Door = nullptr;
+	UMaterialInstanceDynamic* BodyMaterial;
+	UMaterialInstanceDynamic* LogoMaterial;
 
-	TArray<FName> Key;
+	ACWeapone* Weapone;
+	UCCrossHairWidget* CrossHairWidget;
+	UCAutoWidget* AutoWidget;
+
+
+	// Inherited via ICWeaponeInterface
+	virtual void GetAimInfo(FVector& OutAimStart, FVector& OutAimEnd, FVector& OutAimDirection) override;
+
+	
 };

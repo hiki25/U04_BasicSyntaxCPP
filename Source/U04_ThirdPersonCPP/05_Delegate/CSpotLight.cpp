@@ -5,7 +5,6 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "CBoxBase_MultiCast.h"
 
-
 ACSpotLight::ACSpotLight()
 {
 	RootComp = CreateDefaultSubobject<USceneComponent>("RootComp");

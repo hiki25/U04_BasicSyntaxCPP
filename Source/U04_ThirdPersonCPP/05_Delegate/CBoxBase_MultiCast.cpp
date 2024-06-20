@@ -1,6 +1,5 @@
-#include "Global.h"
-
 #include "CBoxBase_MultiCast.h"
+#include "Global.h"
 
 void ACBoxBase_MultiCast::ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {

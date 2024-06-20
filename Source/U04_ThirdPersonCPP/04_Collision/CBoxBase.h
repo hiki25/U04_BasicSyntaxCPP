@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Components/TextRenderComponent.h"
 #include "CBoxBase.generated.h"
 
 class UBoxComponent;
