@@ -9,6 +9,7 @@
 #include "GameFramework/Character.h"
 #include "CWeaponeInterface.h"
 #include "CPlayer.h"
+#include "Widgets/CAutoWidget.h"
 
 static TAutoConsoleVariable<bool> CVarDebugLine(TEXT("Tore.DrawDebugLine"), false, TEXT("Enable Draw Aim Line"), ECVF_Cheat);
 
@@ -20,6 +21,11 @@ ACWeapone::ACWeapone()
 	PitchSpeed = 0.25f;
 	MaxBullet = 30;
 	CurrentBullet = MaxBullet;
+
+	if (OnBulletCount.IsBound() == true)
+	{
+		OnBulletCount.Execute( MaxBullet, CurrentBullet);
+	}
 
 	HolsterSoket = "Holster_AR4";
 	HandSoket = "Hand_AR4";
@@ -91,6 +97,8 @@ void ACWeapone::BeginPlay()
 	
 	
 }
+
+
 
 void ACWeapone::Tick(float DeltaTime)
 {
@@ -204,6 +212,7 @@ void ACWeapone::ToggleAutoFire()
 	bAutoFire = !bAutoFire;
 }
 
+
 void ACWeapone::RelaodBullet()
 {
 	if (bReloading == true) return;
@@ -214,6 +223,7 @@ void ACWeapone::Begin_Reload()
 {
 	bReloading = true;
 	CurrentBullet = MaxBullet;
+	OnBulletCount.Execute(MaxBullet, CurrentBullet);
 	GetMesh()->HideBoneByName(TEXT("b_gun_mag"), EPhysBodyOp::PBO_MAX);
 
 }
@@ -241,10 +251,14 @@ void ACWeapone::OnFire()
 	}
 
 	CurrentBullet--;
-	if (CurrentBullet == 0)
+	if (CurrentBullet < 0)
 	{
 		Player->Reload();
 		return;
+	}
+	if (OnBulletCount.IsBound() == true)
+	{
+		OnBulletCount.Execute(MaxBullet, CurrentBullet);
 	}
 
 	ICWeaponeInterface* ImplementedActor = Cast<ICWeaponeInterface>(OwnerCharacter);
@@ -319,6 +333,7 @@ void ACWeapone::OnReload()
 void ACWeapone::OffReload()
 {
 	MagEmtyComp->SetSimulatePhysics(false);
+	MagEmtyComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MagEmtyComp->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("Mag_Hand"));
 }
 

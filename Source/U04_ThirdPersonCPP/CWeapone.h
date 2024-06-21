@@ -13,6 +13,8 @@ class USoundCue;
 class UDecalComponent;
 class UMaterialInstanceConstant;
 
+DECLARE_DELEGATE_TwoParams(FBulletCount, int32, int32);
+
 UCLASS()
 class U04_THIRDPERSONCPP_API ACWeapone : public AActor
 {
@@ -23,6 +25,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -58,7 +62,6 @@ public:
 
 	void ToggleAutoFire();
 
-	
 
 	void OnFire();
 	void OnReload();
@@ -110,7 +113,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "AutoFire")
 		float PitchSpeed;
 
-	
+public:
+	FBulletCount OnBulletCount;
 
 private:
 	UPROPERTY(VisibleDefaultsOnly)

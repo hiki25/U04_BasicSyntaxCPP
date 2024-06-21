@@ -12,6 +12,8 @@ class ACWeapone;
 class UCCrossHairWidget;
 class UCAutoWidget;
 
+
+
 UCLASS()
 class U04_THIRDPERSONCPP_API ACPlayer : public ACharacter, public ICWeaponeInterface
 {
@@ -26,9 +28,11 @@ public:
 	FORCEINLINE ACWeapone* GetWeapone() override { return Weapone; }
 
 	void Reload();
+
+
+
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float Deltatime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void OnTarget() override;
@@ -49,8 +53,6 @@ private:
 
 	void OnFire();
 	void OffFire();
-
-
 
 
 public:
@@ -82,12 +84,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Widgetclass")
 	TSubclassOf<UCAutoWidget> AutoWidgetClass;
 
-	UPROPERTY()
-		int32 CurrentBullet;
-
-	UPROPERTY()
-		int32 MaxBullet;
-
+public:
+	UFUNCTION()
+		void CallCountBullet(int32 CurrentBullet,int32 MaxBullet);
 private:
 	UMaterialInstanceDynamic* BodyMaterial;
 	UMaterialInstanceDynamic* LogoMaterial;

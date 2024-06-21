@@ -5,6 +5,7 @@
 #include "CAutoWidget.generated.h"
 
 
+
 UCLASS()
 class U04_THIRDPERSONCPP_API UCAutoWidget : public UUserWidget
 {
@@ -17,6 +18,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void OffAuto();
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintNativeEvent)
 		void BulletCount(int32 Max, int32 Current);
+
+
 };

@@ -12,7 +12,7 @@
 
 ACPlayer::ACPlayer()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
 	SpringArmComp->SetupAttachment(GetCapsuleComponent());
@@ -64,6 +64,8 @@ void ACPlayer::ChangeSpeed(float InMoveSpeed)
 	GetCharacterMovement()->MaxWalkSpeed = InMoveSpeed;
 }
 
+
+
 void ACPlayer::BeginPlay()
 {
 	Super::BeginPlay();
@@ -79,6 +81,8 @@ void ACPlayer::BeginPlay()
 	SpawnParam.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	Weapone = GetWorld()->SpawnActor<ACWeapone>(WeaponeClass,SpawnParam);
+	Weapone->OnBulletCount.BindUFunction(this,FName("CallCountBullet"));
+	
 
 	CrossHairWidget = CreateWidget<UCCrossHairWidget, APlayerController>(GetController<APlayerController>(), CrossHairWidgetClass);
 	CrossHairWidget->AddToViewport();
@@ -86,13 +90,7 @@ void ACPlayer::BeginPlay()
 
 	AutoWidget = CreateWidget<UCAutoWidget, APlayerController>(GetController<APlayerController>(), AutoWidgetClass);
 	AutoWidget->AddToViewport();
-}
-
-void ACPlayer::Tick(float Deltatime)
-{
-	CurrentBullet = Weapone->GetCurrentBullet();
-	MaxBullet = Weapone->GetMaxBullet();
-	AutoWidget->BulletCount(MaxBullet, CurrentBullet);
+	AutoWidget->BulletCount(Weapone->GetMaxBullet(), Weapone->GetCurrentBullet());
 }
 
 
@@ -239,10 +237,16 @@ void ACPlayer::Reload()
 	Weapone->RelaodBullet();
 }
 
+
 void ACPlayer::SetBodyColor(FLinearColor InBodyColor, FLinearColor InLogoColor)
 {
 	BodyMaterial->SetVectorParameterValue("BodyColor", InBodyColor);
 	LogoMaterial->SetVectorParameterValue("BodyColor", InLogoColor);
+}
+
+void ACPlayer::CallCountBullet(int32 CurrentBullet, int32 MaxBullet)
+{
+	AutoWidget->BulletCount(CurrentBullet, MaxBullet);
 }
 
 void ACPlayer::GetAimInfo(FVector& OutAimStart, FVector& OutAimEnd, FVector& OutAimDirection)
