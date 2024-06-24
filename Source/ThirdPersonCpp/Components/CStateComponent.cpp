@@ -27,14 +27,14 @@ void UCStateComponent::SetBackstepMode()
 	ChahgeType(EStateType::Backstep);
 }
 
-void UCStateComponent::ChahgeType(EStateType NewType)
+void UCStateComponent::ChahgeType(EStateType InNewType)
 {
 	if (OnStateTypeChanged.IsBound())
 	{
 		EStateType Prev = Type;
-		Type = NewType;
+		Type = InNewType;
 
-		OnStateTypeChanged.
+		OnStateTypeChanged.Broadcast(Prev, InNewType);
 	}
 }
 

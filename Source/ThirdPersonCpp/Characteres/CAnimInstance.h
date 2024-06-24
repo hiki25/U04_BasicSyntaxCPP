@@ -18,6 +18,6 @@ protected:
 	float Speed;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "BlendSpace")
-		float Direction;
+	float Direction;
 	
 };

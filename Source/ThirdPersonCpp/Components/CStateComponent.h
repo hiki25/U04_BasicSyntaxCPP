@@ -7,10 +7,10 @@
 UENUM(BlueprintType)
 enum class EStateType: uint8
 {
-	Idle,Roll,Backstep
+	Idle,Roll,Backstep, Max
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGTAE_TwoParams(FStateTypeChanged, EStateType, InPreType, EStateType, InNewType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FStateTypeChanged, EStateType, InPreType, EStateType, InNewType);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class THIRDPERSONCPP_API UCStateComponent : public UActorComponent
@@ -25,11 +25,11 @@ protected:
 
 public:
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE boll IsIdleMode() {return Type == EStateType::Idle}
+		FORCEINLINE bool IsIdleMode() { return Type == EStateType::Idle; }
 	UFUNCTION(BlueprintPure)
-		FORCEINLINE boll IsRollMode() { return Type == EStateType::Roll }
+		FORCEINLINE bool IsRollMode() { return Type == EStateType::Roll; }
 	UFUNCTION(BlueprintPure)
-		FORCEINLINE boll IsBackstepMode() { return Type == EStateType::Backstep }
+		FORCEINLINE bool IsBackstepMode() { return Type == EStateType::Backstep; }
 
 	void SetIdleMode();
 	void SetRollMode();
