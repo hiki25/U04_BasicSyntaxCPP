@@ -6,6 +6,7 @@
 #include "Components/CAttributeComponent.h"
 #include "Components/COptionComponent.h"
 #include "Components/CMontagesComponent.h"
+#include "Components/CActionComponent.h"
 
 ACPlayer::ACPlayer()
 {
@@ -28,6 +29,7 @@ ACPlayer::ACPlayer()
 	CHelpers::CreateActorComponent(this, &OptionComp, "OptionComp");
 	CHelpers::CreateActorComponent(this, &StateComp, "StateComp");
 	CHelpers::CreateActorComponent(this, &MontageComp, "MontageComp");
+	CHelpers::CreateActorComponent(this, &ActionComp, "ActionComp");
 
 	TSubclassOf<UAnimInstance>AnimInstanceClass;
 	CHelpers::GetClass<UAnimInstance>(&AnimInstanceClass,"/Game/Character/Player/ABP_Player");
@@ -70,8 +72,14 @@ void ACPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("Zoom", this, &ACPlayer::OnZoom);
 
 	PlayerInputComponent->BindAction("Evade", EInputEvent::IE_Pressed, this, &ACPlayer::OnEvade);
+
 	PlayerInputComponent->BindAction("Walk", EInputEvent::IE_Pressed, this, &ACPlayer::OnWalk);
 	PlayerInputComponent->BindAction("Walk", EInputEvent::IE_Released, this, &ACPlayer::OffWalk);
+
+	PlayerInputComponent->BindAction("Fist", EInputEvent::IE_Pressed, this, &ACPlayer::OnFist);
+	PlayerInputComponent->BindAction("OneHand", EInputEvent::IE_Pressed, this, &ACPlayer::OnOneHand);
+	PlayerInputComponent->BindAction("TwoHand", EInputEvent::IE_Pressed, this, &ACPlayer::OnTwoHand);
+	PlayerInputComponent->BindAction("MagicBall", EInputEvent::IE_Pressed, this, &ACPlayer::OnMagicBall);
 }
 
 void ACPlayer::OnMoveForward(float Axix)
@@ -136,6 +144,30 @@ void ACPlayer::OnEvade()
 
 	StateComp->SetRollMode();
 
+}
+
+void ACPlayer::OnFist()
+{
+	CheckFalse(StateComp->IsIdleMode());
+	ActionComp->SetFistMode();
+}
+
+void ACPlayer::OnOneHand()
+{
+	CheckFalse(StateComp->IsIdleMode());
+	ActionComp->SetOneHandMode();
+}
+
+void ACPlayer::OnTwoHand()
+{
+	CheckFalse(StateComp->IsIdleMode());
+	ActionComp->SetTwoHandMode();
+}
+
+void ACPlayer::OnMagicBall()
+{
+	CheckFalse(StateComp->IsIdleMode());
+	ActionComp->SetMagicBallMode();
 }
 
 void ACPlayer::Begin_Roll()

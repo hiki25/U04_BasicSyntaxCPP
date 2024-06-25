@@ -4,6 +4,9 @@
 #include "Components/ActorComponent.h"
 #include "CActionComponent.generated.h"
 
+class UCActionData;
+
+
 
 UENUM(BlueprintType)
 enum class EActionType : uint8
@@ -45,6 +48,7 @@ public:
 
 public:
 	void SetUnArmedMode();
+	void SetFistMode();
 	void SetOneHandMode();
 	void SetTwoHandMode();
 	void SetMagicBallMode();
@@ -58,6 +62,10 @@ private:
 public:
 	UPROPERTY(BlueprintAssignable)
 	FActionTypeChanged OnActionTypeChanged;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "DataAsset")
+	UCActionData* DataAssets[(int32)EActionType::Max];
 
 private:
 	EActionType Type;

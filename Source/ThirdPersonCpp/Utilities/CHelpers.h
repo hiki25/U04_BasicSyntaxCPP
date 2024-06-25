@@ -33,6 +33,12 @@ public:
 	}
 
 	template<typename T>
+	static T* GetComponent(AActor* InActor)
+	{
+		return Cast<T>(InActor->GetComponentByClass(T::StaticClass()));
+	}
+
+	template<typename T>
 	static void CreateSceneComponent(AActor* InActor, T** OutComponent, FName InName, USceneComponent* InParent = nullptr)
 	{
 		*OutComponent = InActor-> CreateDefaultSubobject<T>(InName);
@@ -50,4 +56,5 @@ public:
 	{
 		*OutComponent = InActor->CreateDefaultSubobject<T>(InName);
 	}
+
 };
