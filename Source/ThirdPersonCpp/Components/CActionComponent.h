@@ -47,6 +47,10 @@ public:
 	FORCEINLINE bool IsWhirlWindMode() { return Type == EActionType::WhirlWind; }
 
 public:
+	UFUNCTION(BlueprintPure)
+		FORCEINLINE UCActionData* GetCurrentActionData() { return DataAssets[(int32)Type]; }
+
+public:
 	void SetUnArmedMode();
 	void SetFistMode();
 	void SetOneHandMode();
@@ -69,5 +73,7 @@ private:
 
 private:
 	EActionType Type;
+
+
 		
 };

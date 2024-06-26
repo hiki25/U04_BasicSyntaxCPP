@@ -40,6 +40,12 @@ class THIRDPERSONCPP_API UCActionData : public UDataAsset
 public:
 	void BeginPlay(ACharacter* InOnwerCharacter);
 
+private:
+	FString MakeActorLable(ACharacter* InOwnerCharacter, FString InMiddleName);
+
+public:
+	FORCEINLINE ACEquipment* GetEquipment() { return Equipment; }
+
 public:
 	UPROPERTY(EditAnywhere, Category = "Equipment")
 	TSubclassOf<ACEquipment> EquipmentClass;
@@ -49,6 +55,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Equipment")
 		FLinearColor EquipmentColor;
+
+
 
 private:
 	ACEquipment* Equipment;
