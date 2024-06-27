@@ -14,7 +14,7 @@ void ACAttachment::BeginPlay()
 	
 }
 
-void ACAttachment::AttachTo(FName InSocketName)
+void ACAttachment::ActorAttachTo(FName InSocketName)
 {
 	AttachToComponent
 	(

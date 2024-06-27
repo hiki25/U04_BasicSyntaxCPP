@@ -2,10 +2,21 @@
 #include "Global.h"
 #include "GameFramework/Character.h"
 #include "CEquipment.h"
+#include "CAttachment.h"
+#include "CDoAction.h"
+
 
 void UCActionData::BeginPlay(ACharacter* InOwnerCharacter)
 {
 	FTransform Transform;
+
+	if (AttachmentClass)
+	{
+		Attachment = InOwnerCharacter->GetWorld()->SpawnActorDeferred<ACAttachment>(AttachmentClass, Transform, InOwnerCharacter);
+		Attachment->SetActorLabel(MakeActorLable(InOwnerCharacter, "Attachment"));
+		Attachment->FinishSpawning(Transform);
+	}
+
 
 	if (EquipmentClass)
 	{
@@ -14,8 +25,26 @@ void UCActionData::BeginPlay(ACharacter* InOwnerCharacter)
 		Equipment->SetColor(EquipmentColor);
 		Equipment->SetActorLabel(MakeActorLable(InOwnerCharacter,"Equipment"));
 		Equipment->FinishSpawning(Transform);
+		if (Attachment)
+		{
+			Equipment->OnEquipmentDelegate.AddDynamic(Attachment, &ACAttachment::OnEquip);
+			Equipment->OnUnequipmentDelegate.AddDynamic(Attachment, &ACAttachment::OnUnEquip);
+		}
+	}
+
+	if (DoActionClass)
+	{
+		DoAction = InOwnerCharacter->GetWorld()->SpawnActorDeferred<ACDoAction>(DoActionClass, Transform, InOwnerCharacter);
+		DoAction->SetData(DoActinoDatas);
+		DoAction->SetActorLabel(MakeActorLable(InOwnerCharacter, "DoAction"));
+		DoAction->AttachToComponent(InOwnerCharacter->GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true),NAME_None);
+		DoAction->FinishSpawning(Transform);
 	}
 	
+
+	
+
+
 }
 
 FString UCActionData::MakeActorLable(ACharacter* InOwnerCharacter, FString InMiddleName)

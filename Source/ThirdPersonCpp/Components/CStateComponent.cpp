@@ -32,6 +32,11 @@ void UCStateComponent::SetEquipMode()
 	ChahgeType(EStateType::Equip);
 }
 
+void UCStateComponent::SetActionMode()
+{
+	ChahgeType(EStateType::Action);
+}
+
 void UCStateComponent::ChahgeType(EStateType InNewType)
 {
 	if (OnStateTypeChanged.IsBound())
